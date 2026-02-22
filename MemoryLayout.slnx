@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MemoryLayout.Generator/MemoryLayout.Generator.csproj" />
+  <Project Path="MemoryLayout/MemoryLayout.csproj" />
+</Solution>
