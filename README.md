@@ -79,11 +79,3 @@ Decoding retrieves the original types, reconstructing strings from the internal 
 ```csharp
 UserProfile.Decode(buffer, out var decodedProfile);
 ```
-
-## ⚡ Performance and Security
-
-ASLR Agnostic: By using relative offsets, the generated buffers are safe to be shared between different processes even if base memory addresses differ.
-
-Native UTF-8: Efficient storage for strings, reducing payload size compared to standard UTF-16.
-
-Boundary Validation: The system allows for pre-calculating the required size before writing to prevent buffer overflows.
