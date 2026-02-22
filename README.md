@@ -41,7 +41,7 @@ The engine organizes data using a **Fixed Section + Internal Heap** model:
 Install the package via **NuGet Package Manager Console**:
 
 ```powershell
-Install-Package MemoryPipe
+Install-Package MemoryLayout
 ```
 
 ## 🛠️ Usage Guide
