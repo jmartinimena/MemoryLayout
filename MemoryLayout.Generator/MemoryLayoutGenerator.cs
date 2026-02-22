@@ -35,7 +35,7 @@ namespace MemoryLayout.Generator
                 foreach (var attribute in attributeList.Attributes)
                 {
                     if (context.SemanticModel.GetSymbolInfo(attribute).Symbol is IMethodSymbol attributeSymbol &&
-                        attributeSymbol.ContainingType.ToDisplayString() == "MemoryLayout.MemoryLayoutContractAttribute")
+                        attributeSymbol.ContainingType.ToDisplayString() == "MemoryLayout.Abstractions.MemoryLayoutContractAttribute")
                     {
                         return structDeclaration;
                     }
@@ -94,15 +94,15 @@ namespace MemoryLayout.Generator
                 {
                     encodeLogic.AppendLine($@"
                     // Codificar String: {f.Name}
-                    int bytesWritten_{f.Name} = global::MemoryLayout.LayoutEncoder.WriteString(ref Unsafe.Add(ref dest, currentHeapOffset), value.{f.Name});
-                    var ptr_{f.Name} = new global::MemoryLayout.RelativePointer(currentHeapOffset, bytesWritten_{f.Name});
+                    int bytesWritten_{f.Name} = global::MemoryLayout.Core.LayoutEncoder.WriteString(ref Unsafe.Add(ref dest, currentHeapOffset), value.{f.Name});
+                    var ptr_{f.Name} = new global::MemoryLayout.Core.RelativePointer(currentHeapOffset, bytesWritten_{f.Name});
                     Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, {currentFixedOffset}), ptr_{f.Name});
                     currentHeapOffset += bytesWritten_{f.Name};");
 
                             decodeLogic.AppendLine($@"
                     // Leer String: {f.Name}
-                    var ptr_{f.Name} = Unsafe.ReadUnaligned<global::MemoryLayout.RelativePointer>(ref Unsafe.Add(ref src, {currentFixedOffset}));
-                    result.{f.Name} = global::MemoryLayout.LayoutEncoder.ReadString(buffer, ptr_{f.Name}.Offset, ptr_{f.Name}.Length);");
+                    var ptr_{f.Name} = Unsafe.ReadUnaligned<global::MemoryLayout.Core.RelativePointer>(ref Unsafe.Add(ref src, {currentFixedOffset}));
+                    result.{f.Name} = global::MemoryLayout.Core.LayoutEncoder.ReadString(buffer, ptr_{f.Name}.Offset, ptr_{f.Name}.Length);");
 
                     currentFixedOffset += 8;
                 }
@@ -124,7 +124,7 @@ namespace MemoryLayout.Generator
 
             namespace {ns}
             {{
-                public partial struct {name} : global::MemoryLayout.IMemoryLayout<{name}>
+                public partial struct {name} : global::MemoryLayout.Abstractions.IMemoryLayout<{name}>
                 {{
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     public void Encode(ref byte dest, out int totalBytes)

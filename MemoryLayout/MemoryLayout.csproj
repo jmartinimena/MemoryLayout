@@ -5,13 +5,35 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<PackageId>MemoryLayout</PackageId>
+		<Version>1.0.3</Version>
+		<Authors>Jeremy Martini</Authors>
+		<Description>MemoryLayout is a serialization engine for .NET, specifically engineered for low-latency scenarios where every microsecond matters.</Description>
+		<PackageProjectUrl>https://github.com/jmartinimena/MemoryLayout</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/jmartinimena/MemoryLayout</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+	
 	<ItemGroup>
 		<ProjectReference Include="..\MemoryLayout.Generator\MemoryLayout.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="none" Pack="true" />
 	</ItemGroup>
 
-	<PropertyGroup>
-		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-	</PropertyGroup>
+	<ItemGroup>
+		<None Include="..\MemoryLayout.Generator\bin\$(Configuration)\netstandard2.0\MemoryLayout.Generator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.103">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	</ItemGroup>
 </Project>
