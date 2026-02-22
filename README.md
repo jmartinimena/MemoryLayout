@@ -65,6 +65,8 @@ public partial struct UserProfile
 The generated method writes directly to the provided memory address.
 
 ```csharp
+using MemoryLayout.Core;
+
 Span<byte> buffer = stackalloc byte[1024];
 ref byte dest = ref MemoryMarshal.GetReference(buffer);
 
@@ -77,5 +79,7 @@ profile.Encode(ref dest, out int totalBytes);
 Decoding retrieves the original types, reconstructing strings from the internal heap within the buffer.
 
 ```csharp
+using MemoryLayout.Core;
+
 UserProfile.Decode(buffer, out var decodedProfile);
 ```
