@@ -47,12 +47,12 @@ Install-Package MemoryLayout
 ## 🛠️ Usage Guide
 
 ### 1. Define the Contract
-Apply the `[MemoryLayout]` attribute to a `partial struct`. You can control the binary order using `LayoutOrder`.
+Apply the `[MemoryLayoutContract]` attribute to a `partial struct`. You can control the binary order using `LayoutOrder`.
 
 ```csharp
-using MemoryLayout;
+using MemoryLayout.Abstractions;
 
-[MemoryLayout]
+[MemoryLayoutContract]
 public partial struct UserProfile
 {
     [LayoutOrder(0)] public int Id;
