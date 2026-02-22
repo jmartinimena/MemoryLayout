@@ -25,8 +25,6 @@ The engine organizes data using a **Fixed Section + Internal Heap** model:
 1.  **Fixed Section (Header):** Contains value types (primitives) and metadata for variable types (`RelativePointer`). This ensures that access to non-string fields is $O(1)$ via constant offsets.
 2.  **Internal Heap:** Strings are UTF-8 encoded and stored sequentially immediately after the fixed section, maximizing cache locality.
 
-
-
 ---
 
 ## 📦 Project Structure
@@ -37,6 +35,14 @@ The engine organizes data using a **Fixed Section + Internal Heap** model:
 * **`MemoryLayout.Generator`**: The code generation engine that automatically injects serialization logic into your `structs`.
 
 ---
+
+## 📦 Installation
+
+Install the package via **NuGet Package Manager Console**:
+
+```powershell
+Install-Package MemoryPipe
+```
 
 ## 🛠️ Usage Guide
 
