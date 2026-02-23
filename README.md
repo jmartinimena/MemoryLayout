@@ -4,7 +4,7 @@
 
 **MemoryLayout** is a serialization engine for .NET, specifically engineered for low-latency scenarios where every microsecond matters. It leverages **Source Generation** to transform complex data structures (including variable-length `strings`) into flat, contiguous, and highly optimized binary representations.
 
-Unlike reflection-based or text-based serializers, **MemoryLayout** eliminates processing overhead and Heap allocations, allowing your objects to be converted into bytes near-instantly.
+Unlike reflection-based or text-based serializers, **MemoryLayout** provides a zero-overhead bridge to encode and decode data between managed objects and binary buffers with zero Heap allocations..
 
 
 
