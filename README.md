@@ -67,7 +67,7 @@ The generated method writes directly to the provided memory address.
 ```csharp
 using MemoryLayout.Core;
 
-Span<byte> buffer = stackalloc byte[1024];
+Span<byte> buffer = stackalloc byte[128];
 ref byte dest = ref MemoryMarshal.GetReference(buffer);
 
 var profile = new UserProfile { Id = 1, DisplayName = "Jeremy", Bio = "Developer" };
