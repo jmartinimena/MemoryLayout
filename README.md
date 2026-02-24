@@ -4,7 +4,7 @@
 
 **MemoryLayout** is a serialization engine for .NET, specifically engineered for low-latency scenarios where every microsecond matters. It leverages **Source Generation** to transform complex data structures (including variable-length `strings`) into flat, contiguous, and highly optimized binary representations.
 
-Unlike reflection-based or text-based serializers, **MemoryLayout** eliminates processing overhead and Heap allocations, allowing your objects to be converted into bytes near-instantly.
+Unlike reflection-based or text-based serializers, **MemoryLayout** provides a zero-overhead bridge to encode and decode data between managed objects and binary buffers with zero Heap allocations..
 
 
 
@@ -25,8 +25,6 @@ The engine organizes data using a **Fixed Section + Internal Heap** model:
 1.  **Fixed Section (Header):** Contains value types (primitives) and metadata for variable types (`RelativePointer`). This ensures that access to non-string fields is $O(1)$ via constant offsets.
 2.  **Internal Heap:** Strings are UTF-8 encoded and stored sequentially immediately after the fixed section, maximizing cache locality.
 
-
-
 ---
 
 ## 📦 Project Structure
@@ -38,15 +36,23 @@ The engine organizes data using a **Fixed Section + Internal Heap** model:
 
 ---
 
+## 📦 Installation
+
+Install the package via **NuGet Package Manager Console**:
+
+```powershell
+Install-Package MemoryLayout
+```
+
 ## 🛠️ Usage Guide
 
 ### 1. Define the Contract
-Apply the `[MemoryLayout]` attribute to a `partial struct`. You can control the binary order using `LayoutOrder`.
+Apply the `[MemoryLayoutContract]` attribute to a `partial struct`. You can control the binary order using `LayoutOrder`.
 
 ```csharp
-using MemoryLayout;
+using MemoryLayout.Abstractions;
 
-[MemoryLayout]
+[MemoryLayoutContract]
 public partial struct UserProfile
 {
     [LayoutOrder(0)] public int Id;
@@ -59,7 +65,9 @@ public partial struct UserProfile
 The generated method writes directly to the provided memory address.
 
 ```csharp
-Span<byte> buffer = stackalloc byte[1024];
+using MemoryLayout.Core;
+
+Span<byte> buffer = stackalloc byte[128];
 ref byte dest = ref MemoryMarshal.GetReference(buffer);
 
 var profile = new UserProfile { Id = 1, DisplayName = "Jeremy", Bio = "Developer" };
@@ -71,13 +79,7 @@ profile.Encode(ref dest, out int totalBytes);
 Decoding retrieves the original types, reconstructing strings from the internal heap within the buffer.
 
 ```csharp
+using MemoryLayout.Core;
+
 UserProfile.Decode(buffer, out var decodedProfile);
 ```
-
-## ⚡ Performance and Security
-
-ASLR Agnostic: By using relative offsets, the generated buffers are safe to be shared between different processes even if base memory addresses differ.
-
-Native UTF-8: Efficient storage for strings, reducing payload size compared to standard UTF-16.
-
-Boundary Validation: The system allows for pre-calculating the required size before writing to prevent buffer overflows.
