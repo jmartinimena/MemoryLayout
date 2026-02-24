@@ -12,14 +12,12 @@ namespace MemoryLayout.Generator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            // 1. Buscar structs con el atributo [MemoryLayoutContract]
             var structDeclarations = context.SyntaxProvider
                 .CreateSyntaxProvider(
                     predicate: static (s, _) => s is StructDeclarationSyntax { AttributeLists.Count: > 0 },
                     transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
                 .Where(static m => m is not null);
 
-            // 2. Combinar con la compilación para generar el código
             IncrementalValueProvider<(Compilation, ImmutableArray<StructDeclarationSyntax?>)> compilationAndStructs
                 = context.CompilationProvider.Combine(structDeclarations.Collect());
 
@@ -56,7 +54,6 @@ namespace MemoryLayout.Generator
                 string namespaceName = structSymbol.ContainingNamespace.ToDisplayString();
                 string structName = structSymbol.Name;
 
-                // Generar el código de extensión
                 string source = GenerateLayoutCode(namespaceName, structName, structSymbol);
                 context.AddSource($"{structName}_LayoutEncoder.g.cs", SourceText.From(source, Encoding.UTF8));
             }
@@ -64,54 +61,43 @@ namespace MemoryLayout.Generator
 
         private static string GenerateLayoutCode(string ns, string name, INamedTypeSymbol symbol)
         {
-            var fields = symbol.GetMembers().OfType<IFieldSymbol>()
-                .Select(f => new
-                {
-                    Symbol = f,
-                    Order = f.GetAttributes()
-                        .FirstOrDefault(a => a.AttributeClass?.Name == "LayoutOrderAttribute")
-                        ?.ConstructorArguments[0].Value as int? ?? 999
-                })
-                .OrderBy(x => x.Order).ToList();
+            var fields = symbol.GetMembers().OfType<IFieldSymbol>().ToList();
+            var extensionMethods = new StringBuilder();
+            var internalFields = new StringBuilder();
 
-            var encodeLogic = new StringBuilder();
-            var decodeLogic = new StringBuilder();
-
-            // 1. IMPORTANTE: Los strings en la parte fija ocupan 8 bytes (RelativePointer)
-            // El GetTypeSize debe devolver 8 para strings para que fixedSize sea correcto.
-            int fixedSize = fields.Sum(f => f.Symbol.Type.SpecialType == SpecialType.System_String ? 8 : GetTypeSize(f.Symbol.Type));
-            int currentFixedOffset = 0;
-
-            encodeLogic.AppendLine($"int currentHeapOffset = {fixedSize};");
-            encodeLogic.AppendLine("            ref var value = ref this;");
-
-            foreach (var item in fields)
+            foreach (var f in fields)
             {
-                var f = item.Symbol;
-                string typeName = f.Type.ToDisplayString();
+                var bufferAttr = f.GetAttributes().FirstOrDefault(a => a.AttributeClass?.Name == "MemoryBufferAttribute");
 
-                if (f.Type.SpecialType == SpecialType.System_String)
+                if (bufferAttr != null && f.Type.SpecialType == SpecialType.System_String)
                 {
-                    encodeLogic.AppendLine($@"
-                    // Codificar String: {f.Name}
-                    int bytesWritten_{f.Name} = global::MemoryLayout.Core.LayoutEncoder.WriteString(ref Unsafe.Add(ref dest, currentHeapOffset), value.{f.Name});
-                    var ptr_{f.Name} = new global::MemoryLayout.Core.RelativePointer(currentHeapOffset, bytesWritten_{f.Name});
-                    Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, {currentFixedOffset}), ptr_{f.Name});
-                    currentHeapOffset += bytesWritten_{f.Name};");
+                    int size = (int)bufferAttr.ConstructorArguments[0].Value!;
 
-                            decodeLogic.AppendLine($@"
-                    // Leer String: {f.Name}
-                    var ptr_{f.Name} = Unsafe.ReadUnaligned<global::MemoryLayout.Core.RelativePointer>(ref Unsafe.Add(ref src, {currentFixedOffset}));
-                    result.{f.Name} = global::MemoryLayout.Core.LayoutEncoder.ReadString(buffer, ptr_{f.Name}.Offset, ptr_{f.Name}.Length);");
+                    // 1. Generar campos internos fixed para el struct
+                    internalFields.AppendLine($"        internal fixed byte _{f.Name}_buffer[{size}];");
+                    internalFields.AppendLine($"        internal int _{f.Name}_len;");
 
-                    currentFixedOffset += 8;
-                }
-                else
-                {
-                    int size = GetTypeSize(f.Type);
-                    encodeLogic.AppendLine($"Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, {currentFixedOffset}), value.{f.Name});");
-                    decodeLogic.AppendLine($"result.{f.Name} = Unsafe.ReadUnaligned<{typeName}>(ref Unsafe.Add(ref src, {currentFixedOffset}));");
-                    currentFixedOffset += size;
+                    // 2. Generar métodos de extensión para la "Elegancia"
+                    extensionMethods.AppendLine($@"
+                    public static string Get{f.Name}(this ref {name} msg)
+                    {{
+                        if (msg._{f.Name}_len <= 0) return string.Empty;
+                        unsafe {{
+                            fixed (byte* p = msg._{f.Name}_buffer)
+                                return global::System.Text.Encoding.UTF8.GetString(p, msg._{f.Name}_len);
+                        }}
+                    }}
+
+                    public static void Set{f.Name}(this ref {name} msg, string value)
+                    {{
+                        if (string.IsNullOrEmpty(value)) {{ msg._{f.Name}_len = 0; return; }}
+                        var bytes = global::System.Text.Encoding.UTF8.GetBytes(value);
+                        msg._{f.Name}_len = Math.Min(bytes.Length, {size});
+                        unsafe {{
+                            fixed (byte* p = msg._{f.Name}_buffer)
+                                global::System.Runtime.InteropServices.Marshal.Copy(bytes, 0, (IntPtr)p, msg._{f.Name}_len);
+                        }}
+                    }}");
                 }
             }
 
@@ -120,41 +106,34 @@ namespace MemoryLayout.Generator
             using System;
             using System.Runtime.CompilerServices;
             using System.Runtime.InteropServices;
-            using MemoryLayout;
 
             namespace {ns}
             {{
-                public partial struct {name} : global::MemoryLayout.Abstractions.IMemoryLayout<{name}>
+                [StructLayout(LayoutKind.Sequential, Pack = 1)]
+                public unsafe partial struct {name} : global::MemoryLayout.Abstractions.IMemoryLayout<{name}>
                 {{
+                    {internalFields}
+
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     public void Encode(ref byte dest, out int totalBytes)
                     {{
-                        {encodeLogic}
-                        totalBytes = currentHeapOffset;
+                        uint size = (uint)Unsafe.SizeOf<{name}>();
+                        Unsafe.CopyBlockUnaligned(ref dest, ref Unsafe.As<{name}, byte>(ref this), size);
+                        totalBytes = (int)size;
                     }}
 
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    public static void Decode(ReadOnlySpan<byte> buffer, out {name} result)
+                    public static {name} Decode(ref byte source, int length)
                     {{
-                        result = default;
-                        ref byte src = ref MemoryMarshal.GetReference(buffer);
-                        {decodeLogic}
+                        return Unsafe.ReadUnaligned<{name}>(ref source);
                     }}
                 }}
-            }}";
-        }
 
-        private static int GetTypeSize(ITypeSymbol type)
-        {
-            return type.SpecialType switch
-            {
-                SpecialType.System_Byte => 1,
-                SpecialType.System_Int16 => 2,
-                SpecialType.System_Int32 => 4,
-                SpecialType.System_Int64 => 8,
-                SpecialType.System_Double => 8,
-                _ => 4 // Valor por defecto para enums o tipos simples
-            };
+                public static class {name}Extensions
+                {{
+                    {extensionMethods}
+                }}
+            }}";
         }
     }
 }

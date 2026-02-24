@@ -11,9 +11,8 @@
     /// Es vital para mantener la compatibilidad entre versiones.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class LayoutOrderAttribute : Attribute
+    public class LayoutOrderAttribute(int order) : Attribute
     {
-        public int Order { get; }
-        public LayoutOrderAttribute(int order) => Order = order;
+        public int Order { get; } = order;
     }
 }
