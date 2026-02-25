@@ -71,7 +71,7 @@ namespace {namespaceName}
 {{
     // Forzamos el layout secuencial para asegurar que CopyBlock sea idéntico en ambos lados
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public unsafe partial struct {structName} : IMemoryLayout<{structName}>
+    public unsafe partial struct {structName} : global::MemoryLayout.Abstractions.IMemoryLayout<{structName}>
     {{
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Encode(ref byte dest, out int totalBytes)

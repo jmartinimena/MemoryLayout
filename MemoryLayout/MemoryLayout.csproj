@@ -7,7 +7,7 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageId>MemoryLayout</PackageId>
-		<Version>1.0.4</Version>
+		<Version>1.0.6</Version>
 		<Authors>Jeremy Martini</Authors>
 		<Description>MemoryLayout is a serialization engine for .NET, specifically engineered for low-latency scenarios where every microsecond matters.</Description>
 		<PackageProjectUrl>https://github.com/jmartinimena/MemoryLayout</PackageProjectUrl>
