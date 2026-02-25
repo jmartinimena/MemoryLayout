@@ -4,5 +4,6 @@
     {
         void Encode(ref byte dest, out int totalBytes);
         static abstract void Decode(ReadOnlySpan<byte> buffer, out T result);
+        static abstract ushort TypeId { get; }
     }
 }
