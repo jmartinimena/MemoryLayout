@@ -51,7 +51,7 @@ public partial struct UserProfile
 {
     [LayoutOrder(0)] public int Id;
     [LayoutOrder(1)] public FixedString16 DisplayName;
-    [LayoutOrder(2)] public FixedString128 Bio;
+    [LayoutOrder(2)] public FixedString16 Bio;
 }
 ```
 
