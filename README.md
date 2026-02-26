@@ -9,11 +9,11 @@ Unlike reflection-based or text-based serializers, **MemoryLayout** provides a z
 
 ## 🚀 Key Features
 
-* **Zero-Allocation:** Designed to operate entirely with `Span<T>`, `ReadOnlySpan<byte>`, and `ref byte`, removing pressure from the Garbage Collector (GC).
-* **Source Generated:** Encoding (`Encode`) and decoding (`Decode`) logic is generated at compile-time, enabling JIT compiler optimizations like aggressive inlining that are impossible with reflection.
-* **Variable String Management:** Implements a **Relative Pointer** system that allows multiple strings to be stored in a flat memory block while maintaining constant offsets for other fields.
-* **Aligned & Unaligned-Safe Memory:** Optimized for direct CPU access using `Unsafe.ReadUnaligned` and `WriteUnaligned`, ensuring compatibility and speed across any hardware architecture.
-* **Transport Agnostic:** Generates raw bytes. It can be used for Shared Memory (MMF), TCP/UDP sockets, disk storage, or any high-speed communication channel.
+* **Zero-Allocation**: Architected to operate entirely with `Span<T>`, `ReadOnlySpan<byte>`, and `ref byte`, effectively bypassing the Garbage Collector (GC) and eliminating memory pressure.
+* **Source Generated**: Encoding and decoding logic is injected at compile-time via Roslyn Source Generators. This enables JIT optimizations, such as aggressive inlining, which are impossible to achieve with reflection-based systems.
+* **FixedString Management**: Replaces standard .NET strings with high-performance inline buffers. This ensures that text data is part of the struct's contiguous memory layout, maintaining constant offsets and cache locality.
+* **Hardware-Optimized Memory**: Utilizes `Unsafe.ReadUnaligned` and `WriteUnaligned` for direct CPU memory access, ensuring maximum throughput and compatibility across different hardware architectures.
+* **Transport Agnostic**: Produces raw, deterministic byte streams. Perfect for Shared Memory (MMF), high-speed UDP/TCP sockets, or low-latency disk storage.
 
 
 ## MemoryLayout Ecosystem
