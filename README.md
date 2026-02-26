@@ -18,16 +18,12 @@ Unlike reflection-based or text-based serializers, **MemoryLayout** provides a z
 
 ## MemoryLayout Ecosystem
 
-The project is architected into specialized modules to ensure separation of concerns and peak performance in HFC (High Frequency Computing) environments:
+The project is focused on a lean, high-performance core designed to eliminate allocation overhead through compile-time logic:
 
 | Module | Description |
 | :--- | :--- |
-| **MemoryLayout.Abstractions** | Contains the `IMemoryLayout<T>` base interface and the essential marking attributes for defining memory contracts. |
-| **MemoryLayout.Core** | The low-level engine (*LayoutEncoder*). It handles complex type marshalling and direct pointer manipulation to guarantee ultra-fast data access. |
-| **MemoryLayout.Messaging** | Provides transport-optimized data types. It features the **FixedString** implementation, allowing in-place fixed-length string management that completely eliminates Heap fragmentation and Garbage Collector overhead. |
-| **MemoryLayout.Generator** | Source Code Generation engine. It automatically injects serialization and memory access logic into `structs` at compile-time, bypassing the need for runtime Reflection. |
-| **MemoryLayout.Net** | High-performance transport layer implementing protocols over UDP. Designed to provide low latency and high data availability without unnecessary copies. |
-| **MemoryLayout.Pipe** | Inter-process and intra-process messaging system based on shared memory, enabling data flow between modules with near-zero latency. |
+| **MemoryLayout.Abstractions** | The foundational layer. Contains the `IMemoryLayout<T>` interface and the marking attributes used to define high-performance memory contracts. |
+| **MemoryLayout.Generator** | The heart of the project. A Roslyn-based Source Generator that injects zero-allocation serialization and memory access logic directly into your structs, including optimized support for **FixedStrings**. |
 
 
 ## 📦 Installation
