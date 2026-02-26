@@ -16,14 +16,6 @@ Unlike reflection-based or text-based serializers, **MemoryLayout** provides a z
 * **Transport Agnostic:** Generates raw bytes. It can be used for Shared Memory (MMF), TCP/UDP sockets, disk storage, or any high-speed communication channel.
 
 
-## 🏗️ Memory Architecture
-
-The engine organizes data using a **Fixed Section + Internal Heap** model:
-
-1.  **Fixed Section (Header):** Contains value types (primitives) and metadata for variable types (`RelativePointer`). This ensures that access to non-string fields is $O(1)$ via constant offsets.
-2.  **Internal Heap:** Strings are UTF-8 encoded and stored sequentially immediately after the fixed section, maximizing cache locality.
-
-
 ## MemoryLayout Ecosystem
 
 The project is architected into specialized modules to ensure separation of concerns and peak performance in HFC (High Frequency Computing) environments:
@@ -58,8 +50,8 @@ using MemoryLayout.Abstractions;
 public partial struct UserProfile
 {
     [LayoutOrder(0)] public int Id;
-    [LayoutOrder(1)] public string DisplayName;
-    [LayoutOrder(2)] public string Bio;
+    [LayoutOrder(1)] public FixedString16 DisplayName;
+    [LayoutOrder(2)] public FixedString128 Bio;
 }
 ```
 
