@@ -7,7 +7,6 @@
 Unlike reflection-based or text-based serializers, **MemoryLayout** provides a zero-overhead bridge to encode and decode data between managed objects and binary buffers with zero Heap allocations..
 
 
-
 ## 🚀 Key Features
 
 * **Zero-Allocation:** Designed to operate entirely with `Span<T>`, `ReadOnlySpan<byte>`, and `ref byte`, removing pressure from the Garbage Collector (GC).
@@ -16,25 +15,16 @@ Unlike reflection-based or text-based serializers, **MemoryLayout** provides a z
 * **Aligned & Unaligned-Safe Memory:** Optimized for direct CPU access using `Unsafe.ReadUnaligned` and `WriteUnaligned`, ensuring compatibility and speed across any hardware architecture.
 * **Transport Agnostic:** Generates raw bytes. It can be used for Shared Memory (MMF), TCP/UDP sockets, disk storage, or any high-speed communication channel.
 
----
 
-## 🏗️ Memory Architecture
+## MemoryLayout Ecosystem
 
-The engine organizes data using a **Fixed Section + Internal Heap** model:
+The project is focused on a lean, high-performance core designed to eliminate allocation overhead through compile-time logic:
 
-1.  **Fixed Section (Header):** Contains value types (primitives) and metadata for variable types (`RelativePointer`). This ensures that access to non-string fields is $O(1)$ via constant offsets.
-2.  **Internal Heap:** Strings are UTF-8 encoded and stored sequentially immediately after the fixed section, maximizing cache locality.
+| Module | Description |
+| :--- | :--- |
+| **MemoryLayout.Abstractions** | The foundational layer. Contains the `IMemoryLayout<T>` interface and the marking attributes used to define high-performance memory contracts. |
+| **MemoryLayout.Generator** | The heart of the project. A Roslyn-based Source Generator that injects zero-allocation serialization and memory access logic directly into your structs, including optimized support for **FixedStrings**. |
 
----
-
-## 📦 Project Structure
-
-* **`MemoryLayout.Abstractions`**: Contains the `IMemoryLayout<T>` interface and marking attributes.
-* **`MemoryLayout.Core`**: The low-level core (`LayoutEncoder`) responsible for string marshalling and complex type handling.
-* **`MemoryLayout.Messaging`**: Provides generic wrappers (`FlatEnvelope<TSize>`) and predefined memory templates (`Size128` to `Size8192`) for easy buffer management.
-* **`MemoryLayout.Generator`**: The code generation engine that automatically injects serialization logic into your `structs`.
-
----
 
 ## 📦 Installation
 
@@ -56,8 +46,8 @@ using MemoryLayout.Abstractions;
 public partial struct UserProfile
 {
     [LayoutOrder(0)] public int Id;
-    [LayoutOrder(1)] public string DisplayName;
-    [LayoutOrder(2)] public string Bio;
+    [LayoutOrder(1)] public FixedString16 DisplayName;
+    [LayoutOrder(2)] public FixedString16 Bio;
 }
 ```
 
