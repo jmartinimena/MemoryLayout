@@ -7,7 +7,6 @@
 Unlike reflection-based or text-based serializers, **MemoryLayout** provides a zero-overhead bridge to encode and decode data between managed objects and binary buffers with zero Heap allocations..
 
 
-
 ## 🚀 Key Features
 
 * **Zero-Allocation:** Designed to operate entirely with `Span<T>`, `ReadOnlySpan<byte>`, and `ref byte`, removing pressure from the Garbage Collector (GC).
@@ -16,7 +15,6 @@ Unlike reflection-based or text-based serializers, **MemoryLayout** provides a z
 * **Aligned & Unaligned-Safe Memory:** Optimized for direct CPU access using `Unsafe.ReadUnaligned` and `WriteUnaligned`, ensuring compatibility and speed across any hardware architecture.
 * **Transport Agnostic:** Generates raw bytes. It can be used for Shared Memory (MMF), TCP/UDP sockets, disk storage, or any high-speed communication channel.
 
----
 
 ## 🏗️ Memory Architecture
 
@@ -25,16 +23,20 @@ The engine organizes data using a **Fixed Section + Internal Heap** model:
 1.  **Fixed Section (Header):** Contains value types (primitives) and metadata for variable types (`RelativePointer`). This ensures that access to non-string fields is $O(1)$ via constant offsets.
 2.  **Internal Heap:** Strings are UTF-8 encoded and stored sequentially immediately after the fixed section, maximizing cache locality.
 
----
 
-## 📦 Project Structure
+## MemoryLayout Ecosystem
 
-* **`MemoryLayout.Abstractions`**: Contains the `IMemoryLayout<T>` interface and marking attributes.
-* **`MemoryLayout.Core`**: The low-level core (`LayoutEncoder`) responsible for string marshalling and complex type handling.
-* **`MemoryLayout.Messaging`**: Provides generic wrappers (`FlatEnvelope<TSize>`) and predefined memory templates (`Size128` to `Size8192`) for easy buffer management.
-* **`MemoryLayout.Generator`**: The code generation engine that automatically injects serialization logic into your `structs`.
+The project is architected into specialized modules to ensure separation of concerns and peak performance in HFC (High Frequency Computing) environments:
 
----
+| Module | Description |
+| :--- | :--- |
+| **MemoryLayout.Abstractions** | Contains the `IMemoryLayout<T>` base interface and the essential marking attributes for defining memory contracts. |
+| **MemoryLayout.Core** | The low-level engine (*LayoutEncoder*). It handles complex type marshalling and direct pointer manipulation to guarantee ultra-fast data access. |
+| **MemoryLayout.Messaging** | Provides transport-optimized data types. It features the **FixedString** implementation, allowing in-place fixed-length string management that completely eliminates Heap fragmentation and Garbage Collector overhead. |
+| **MemoryLayout.Generator** | Source Code Generation engine. It automatically injects serialization and memory access logic into `structs` at compile-time, bypassing the need for runtime Reflection. |
+| **MemoryLayout.Net** | High-performance transport layer implementing protocols over UDP. Designed to provide low latency and high data availability without unnecessary copies. |
+| **MemoryLayout.Pipe** | Inter-process and intra-process messaging system based on shared memory, enabling data flow between modules with near-zero latency. |
+
 
 ## 📦 Installation
 
